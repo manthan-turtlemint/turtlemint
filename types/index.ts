@@ -74,6 +74,8 @@ export interface Application {
     finalDecision?: Decision;
     finalLimit?: number;
     finalCollateral?: number;
+    scoringResultV2?: DetailedScoringResult;
+    overrides?: Override[];
     createdAt: string;
     updatedAt: string;
 }

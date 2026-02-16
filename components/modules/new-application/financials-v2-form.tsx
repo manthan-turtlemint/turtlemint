@@ -31,8 +31,10 @@ export function FinancialsV2Form({ data, updateData }: FinancialsV2FormProps) {
                 [ebitdaField]: numValue
             };
         } else {
-            // @ts-ignore
-            newData[year][field] = numValue;
+            const f = field as keyof typeof newData.yearX;
+            if (f !== 'ebitdaComponents' && f !== 'year') {
+                (newData[year] as any)[f] = numValue;
+            }
         }
         updateData({ detailedFinancials: newData });
     };
@@ -47,29 +49,39 @@ export function FinancialsV2Form({ data, updateData }: FinancialsV2FormProps) {
     };
 
     // Helper to render a financial input row
-    const renderRow = (label: string, field: string) => (
-        <div className="grid grid-cols-3 gap-4 mb-4 items-center">
-            <Label className="col-span-1 border-b border-dotted pb-1">{label}</Label>
-            <div className="col-span-1">
-                <Input
-                    type="number"
-                    placeholder="Year X (Latest)"
-                    value={field.startsWith('ebitda.') ? detailedFinancials.yearX.ebitdaComponents[field.split('.')[1] as any] : (detailedFinancials.yearX as any)[field]}
-                    onChange={(e) => handleFinancialChange('yearX', field, e.target.value)}
-                    className="text-right font-mono"
-                />
+    const renderRow = (label: string, field: string) => {
+        const getVal = (yearData: any, f: string) => {
+            if (f.startsWith('ebitda.')) {
+                const k = f.split('.')[1];
+                return (yearData.ebitdaComponents as any)[k];
+            }
+            return (yearData as any)[f];
+        };
+
+        return (
+            <div className="grid grid-cols-3 gap-4 mb-4 items-center">
+                <Label className="col-span-1 border-b border-dotted pb-1">{label}</Label>
+                <div className="col-span-1">
+                    <Input
+                        type="number"
+                        placeholder="Year X (Latest)"
+                        value={getVal(detailedFinancials.yearX, field)}
+                        onChange={(e) => handleFinancialChange('yearX', field, e.target.value)}
+                        className="text-right font-mono"
+                    />
+                </div>
+                <div className="col-span-1">
+                    <Input
+                        type="number"
+                        placeholder="Year Y (Previous)"
+                        value={getVal(detailedFinancials.yearY, field)}
+                        onChange={(e) => handleFinancialChange('yearY', field, e.target.value)}
+                        className="text-right font-mono"
+                    />
+                </div>
             </div>
-            <div className="col-span-1">
-                <Input
-                    type="number"
-                    placeholder="Year Y (Previous)"
-                    value={field.startsWith('ebitda.') ? detailedFinancials.yearY.ebitdaComponents[field.split('.')[1] as any] : (detailedFinancials.yearY as any)[field]}
-                    onChange={(e) => handleFinancialChange('yearY', field, e.target.value)}
-                    className="text-right font-mono"
-                />
-            </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="space-y-8">

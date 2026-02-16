@@ -1,5 +1,4 @@
 import {
-    ApplicationV2,
     DetailedFinancials,
     DetailedScoringResult,
     DerivedMetrics,

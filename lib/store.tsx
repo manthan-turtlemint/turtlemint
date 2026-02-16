@@ -31,7 +31,7 @@ interface AppContextType extends AppState {
         limit: number,
         collateral: number,
         notes: string,
-        user: User
+        user: User | null
     ) => Promise<void>;
     addRule: (rule: ScoringRule) => Promise<void>; // Note: logic needed in actions.ts if used
     toggleRule: (id: string) => Promise<void>;
@@ -93,8 +93,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         limit: number,
         collateral: number,
         notes: string,
-        user: User
+        user: User | null
     ) => {
+        if (!user) throw new Error("Unauthorized");
         await actions.finalizeApp(id, decision, limit, collateral);
         setApplications(prev =>
             prev.map(app =>

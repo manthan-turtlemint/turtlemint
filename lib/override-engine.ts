@@ -144,9 +144,10 @@ export function calculateScoreWithOverrides(
     // 5. Apply Final Decision Overrides
     const decisionOverride = overrides.find(o => o.type === 'final_decision');
     if (decisionOverride) {
-        result.decision = decisionOverride.value.decision; // Expect object { decision: "...", loadingPct: ... }
-        if (decisionOverride.value.loadingPct !== undefined) {
-            result.loadingPct = decisionOverride.value.loadingPct;
+        const val = decisionOverride.value as { decision: "Acceptance" | "Reject"; loadingPct?: number | null };
+        result.decision = val.decision;
+        if (val.loadingPct !== undefined) {
+            result.loadingPct = val.loadingPct;
         }
     }
 
