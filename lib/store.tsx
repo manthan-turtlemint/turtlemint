@@ -131,7 +131,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         id: session.user.id,
         name: session.user.name || "User",
         email: session.user.email || "",
-        role: session.user.role || "underwriter",
+        role: (session.user.role as any) || "underwriter",
     } : null;
 
     return (
