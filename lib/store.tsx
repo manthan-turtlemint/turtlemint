@@ -137,7 +137,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     const currentUser: User = {
-        id: "public-session",
+        id: "demo-user",
         name: "Public User",
         email: "demo@bonddesk.com",
         role: role,

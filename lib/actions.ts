@@ -5,7 +5,20 @@ import { Application, ScoringRule, ScoringConfig, ApplicationStatus, Decision } 
 import { revalidatePath } from "next/cache";
 
 async function getUserId() {
-    return "demo-user";
+    const userId = "demo-user";
+    // Ensure the demo user exists in the DB so relations don't break
+    await prisma.user.upsert({
+        where: { id: userId },
+        update: {},
+        create: {
+            id: userId,
+            name: "Public Demo User",
+            email: "demo@bonddesk.com",
+            role: "admin",
+            isApproved: true,
+        },
+    });
+    return userId;
 }
 
 // Applications
