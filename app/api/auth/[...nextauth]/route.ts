@@ -1,67 +1,79 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 export const runtime = "nodejs";
-import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     providers: [
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID || "",
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-            allowDangerousEmailAccountLinking: true,
-        }),
+        CredentialsProvider({
+            name: "Credentials",
+            credentials: {
+                email: { label: "Email", type: "email" },
+                password: { label: "Password", type: "password" }
+            },
+            async authorize(credentials) {
+                if (!credentials?.email || !credentials?.password) {
+                    throw new Error("Missing credentials");
+                }
+
+                const user = await prisma.user.findUnique({
+                    where: { email: credentials.email },
+                });
+
+                if (!user || !user.password) {
+                    throw new Error("Invalid credentials");
+                }
+
+                const isValid = await bcrypt.compare(credentials.password, user.password);
+
+                if (!isValid) {
+                    throw new Error("Invalid credentials");
+                }
+
+                if (!user.isApproved) {
+                    throw new Error("Account pending approval");
+                }
+
+                return user;
+            }
+        })
     ],
+    session: {
+        strategy: "jwt",
+    },
     callbacks: {
-        async signIn({ user, account, profile }) {
-            if (!user.email) return false;
-            const adminEmail = process.env.ADMIN_EMAIL || "manthan.varghese@turtlemint.com";
-
-            const isGmail = user.email.endsWith("@gmail.com");
-            const isAdmin = user.email === adminEmail;
-
-            if (!isGmail && !isAdmin) return false;
-
-            // Check if user exists. If not, allow creation by returning true.
-            const dbUser = await prisma.user.findUnique({
-                where: { email: user.email },
-            });
-
-            if (!dbUser) return true;
-            return dbUser.isApproved || user.email === adminEmail;
+        async jwt({ token, user }) {
+            if (user) {
+                token.id = user.id;
+                // @ts-ignore
+                token.role = user.role;
+                // @ts-ignore
+                token.isApproved = user.isApproved;
+            }
+            return token;
         },
-        async session({ session, user }) {
+        async session({ session, token }) {
             if (session.user) {
                 // @ts-ignore
-                session.user.id = user.id;
+                session.user.id = token.id;
                 // @ts-ignore
-                session.user.role = user.role;
+                session.user.role = token.role;
                 // @ts-ignore
-                session.user.isApproved = user.isApproved;
+                session.user.isApproved = token.isApproved;
             }
             return session;
         },
-    },
-    events: {
-        async createUser({ user }) {
-            const adminEmail = process.env.ADMIN_EMAIL || "manthan.varghese@turtlemint.com";
-            if (user.email === adminEmail) {
-                await prisma.user.update({
-                    where: { id: user.id },
-                    data: { isApproved: true, role: "admin" },
-                });
-            }
-        }
     },
     pages: {
         signIn: "/login",
         error: "/auth/error",
     },
-    debug: process.env.NODE_ENV !== "production" || true, // Force true for now to see live logs
+    debug: process.env.NODE_ENV !== "production",
     secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };
