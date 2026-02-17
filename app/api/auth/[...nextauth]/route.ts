@@ -58,6 +58,8 @@ export const authOptions: NextAuthOptions = {
         signIn: "/login",
         error: "/auth/error",
     },
+    debug: process.env.NODE_ENV !== "production" || true, // Force true for now to see live logs
+    secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);

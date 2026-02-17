@@ -21,7 +21,17 @@ export default function LoginPage() {
                         <p>Only Gmail accounts are permitted. New accounts require manual approval by the administrator.</p>
                     </div>
                     <Button
-                        onClick={() => signIn("google", { callbackUrl: "/" })}
+                        onClick={async () => {
+                            try {
+                                const result = await signIn("google", { callbackUrl: "/" });
+                                if (result?.error) {
+                                    alert("Login Error: " + result.error);
+                                }
+                            } catch (e) {
+                                console.error(e);
+                                alert("Login failed to initiate. Check console.");
+                            }
+                        }}
                         className="w-full flex items-center justify-center gap-2 py-6 text-lg"
                     >
                         <Mail className="w-5 h-5" />
