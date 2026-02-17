@@ -3,8 +3,6 @@ import { Inter } from "next/font/google"; // Using Inter as requested for premiu
 import "./globals.css";
 import { AppProvider } from "@/lib/store";
 
-import { AuthProvider } from "@/components/auth-provider";
-
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -20,9 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
-          <AppProvider>{children}</AppProvider>
-        </AuthProvider>
+        <AppProvider>{children}</AppProvider>
       </body>
     </html>
   );

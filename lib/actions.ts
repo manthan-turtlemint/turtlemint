@@ -1,15 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Application, ScoringRule, ScoringConfig, ApplicationStatus, Decision } from "@/types";
 import { revalidatePath } from "next/cache";
 
 async function getUserId() {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) throw new Error("Unauthorized");
-    return session.user.id;
+    return "demo-user";
 }
 
 // Applications
